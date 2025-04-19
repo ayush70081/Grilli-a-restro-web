@@ -1,0 +1,341 @@
+{% extends 'restaurant/base.html' %}
+{% load static %}
+{% load order_filters %}
+
+{% block content %}
+<div class="track-order-container">
+    <div class="order-header">
+        <h2 class="section-title">Track Order #{{ order.id }}</h2>
+        <div class="order-info">
+            <p class="order-time">Ordered on {{ order.created_at|date:"F j, Y g:i A" }}</p>
+            <p class="pickup-time">Pickup Time: {{ order.pickup_time|date:"g:i A" }}</p>
+        </div>
+    </div>
+
+    <div class="order-timeline" data-order-id="{{ order.id }}">
+        <div class="timeline-item {% if order.status == 'confirmed' or order.status == 'preparing' or order.status == 'ready' or order.status == 'completed' %}completed{% endif %}">
+            <div class="timeline-icon">
+                <span class="status-icon">{% if order.confirmed_at %}✓{% else %}•{% endif %}</span>
+            </div>
+            <div class="timeline-content">
+                <h3>Order Confirmed</h3>
+                <p>{{ order.confirmed_at|date:"g:i A"|default:"Pending" }}</p>
+            </div>
+        </div>
+
+        <div class="timeline-item {% if order.status == 'preparing' or order.status == 'ready' or order.status == 'completed' %}completed{% endif %}">
+            <div class="timeline-icon">
+                <span class="status-icon">{% if order.preparing_at %}✓{% else %}•{% endif %}</span>
+            </div>
+            <div class="timeline-content">
+                <h3>Preparing</h3>
+                <p>{{ order.preparing_at|date:"g:i A"|default:"Pending" }}</p>
+            </div>
+        </div>
+
+        <div class="timeline-item {% if order.status == 'ready' or order.status == 'completed' %}completed{% endif %}">
+            <div class="timeline-icon">
+                <span class="status-icon">{% if order.ready_at %}✓{% else %}•{% endif %}</span>
+            </div>
+            <div class="timeline-content">
+                <h3>Ready for Pickup</h3>
+                <p>{{ order.ready_at|date:"g:i A"|default:"Pending" }}</p>
+            </div>
+        </div>
+
+        <div class="timeline-item {% if order.status == 'completed' %}completed{% endif %}">
+            <div class="timeline-icon">
+                <span class="status-icon">{% if order.completed_at %}✓{% else %}•{% endif %}</span>
+            </div>
+            <div class="timeline-content">
+                <h3>Completed</h3>
+                <p>{{ order.completed_at|date:"g:i A"|default:"Pending" }}</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="order-details">
+        <h3>Order Details</h3>
+        <div class="items-list">
+            {% for item in order.items.all %}
+            <div class="order-item">
+                <div class="item-info">
+                    <span class="item-name">{{ item.menu_item.name }}</span>
+                    <span class="item-quantity">×{{ item.quantity }}</span>
+                </div>
+                <span class="item-price">₹{{ item.item_total|floatformat:2 }}</span>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="order-summary">
+            <div class="summary-row">
+                <span>Subtotal</span>
+                <span>₹{{ order.total_amount|floatformat:2 }}</span>
+            </div>
+            <div class="summary-row">
+                <span>Tax (18% GST)</span>
+                <span>₹{{ order.total_amount|multiply:0.18|floatformat:2 }}</span>
+            </div>
+            <div class="summary-row total">
+                <span>Total</span>
+                <span>₹{{ order.get_total_with_tax|floatformat:2 }}</span>
+            </div>
+        </div>
+
+        {% if order.special_instructions %}
+        <div class="special-instructions">
+            <h4>Special Instructions</h4>
+            <p>{{ order.special_instructions }}</p>
+        </div>
+        {% endif %}
+
+        <div class="pickup-info">
+            <h4>Pickup Time</h4>
+            <p>{{ order.pickup_time|date:"F j, Y g:i A" }}</p>
+        </div>
+    </div>
+</div>
+
+<script>
+function updateOrderStatus() {
+    const orderId = document.querySelector('.order-timeline').dataset.orderId;
+    
+    fetch(`/api/order-status/${orderId}/`)
+        .then(response => response.json())
+        .then(data => {
+            const timeline = document.querySelector('.order-timeline');
+            const items = timeline.querySelectorAll('.timeline-item');
+            
+            // Update timeline items based on status
+            items.forEach(item => {
+                const statusText = item.querySelector('h3').textContent.toLowerCase();
+                
+                if (data.status === 'completed' || 
+                    (data.status === 'ready' && statusText !== 'completed') ||
+                    (data.status === 'preparing' && (statusText === 'order confirmed' || statusText === 'preparing')) ||
+                    (data.status === 'confirmed' && statusText === 'order confirmed')) {
+                    item.classList.add('completed');
+                    item.querySelector('.status-icon').textContent = '✓';
+                }
+                
+                // Update timestamps
+                if (data[`${statusText.replace(' ', '_')}_at`]) {
+                    const time = new Date(data[`${statusText.replace(' ', '_')}_at`]);
+                    item.querySelector('p').textContent = time.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+                }
+            });
+            
+            // If order is not completed, schedule next update
+            if (data.status !== 'completed' && data.status !== 'cancelled') {
+                setTimeout(updateOrderStatus, 30000); // Update every 30 seconds
+            }
+        })
+        .catch(error => console.error('Error updating order status:', error));
+}
+
+// Start updating order status
+updateOrderStatus();
+</script>
+
+<style>
+.track-order-container {
+    padding: 10rem 2rem 6rem;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.order-timeline {
+    margin: 4rem 0;
+    position: relative;
+    padding-left: 3rem;
+}
+
+.timeline-item {
+    position: relative;
+    margin-bottom: 3rem;
+    opacity: 0.5;
+}
+
+.timeline-item.completed {
+    opacity: 1;
+}
+
+.timeline-icon {
+    position: absolute;
+    left: -3rem;
+    width: 3rem;
+    height: 3rem;
+    background: var(--black-light);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.timeline-item.completed .timeline-icon {
+    background: var(--gold);
+}
+
+.status-icon {
+    color: var(--white);
+    font-size: 1.6rem;
+}
+
+.status-icon.pending {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { opacity: 0.5; }
+    50% { opacity: 1; }
+    100% { opacity: 0.5; }
+}
+
+.order-details {
+    margin-top: 4rem;
+}
+
+.items-list {
+    margin-bottom: 2rem;
+}
+
+.order-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 0.8rem;
+    margin-bottom: 1rem;
+}
+
+.item-info {
+    display: flex;
+    align-items: center;
+}
+
+.item-name {
+    color: var(--white);
+    margin-right: 1rem;
+}
+
+.item-quantity {
+    color: var(--text-gray);
+}
+
+.item-price {
+    color: var(--gold);
+    font-size: 1.8rem;
+    font-weight: bold;
+}
+
+.order-summary {
+    margin-bottom: 2rem;
+}
+
+.summary-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 0.8rem;
+    margin-bottom: 1rem;
+}
+
+.summary-row span {
+    color: var(--white);
+}
+
+.special-instructions {
+    margin-bottom: 2rem;
+}
+
+.special-instructions h4 {
+    color: var(--gold);
+    margin-bottom: 0.5rem;
+}
+
+.special-instructions p {
+    color: var(--text-gray);
+}
+
+.pickup-info {
+    margin-bottom: 2rem;
+}
+
+.pickup-info h4 {
+    color: var(--gold);
+    margin-bottom: 0.5rem;
+}
+
+.pickup-info p {
+    color: var(--text-gray);
+}
+
+.pending-time {
+    color: var(--text-gray);
+    font-style: italic;
+}
+
+.timeline-content {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 1.5rem;
+    border-radius: 0.8rem;
+    margin-left: 1rem;
+}
+
+.timeline-content h3 {
+    color: var(--gold);
+    margin-bottom: 0.5rem;
+    font-size: 1.6rem;
+}
+
+.timeline-content p {
+    color: var(--text-gray);
+    font-size: 1.4rem;
+}
+
+.timeline-item::before {
+    content: '';
+    position: absolute;
+    left: -1.5rem;
+    top: 3rem;
+    width: 2px;
+    height: calc(100% + 1rem);
+    background: rgba(199, 161, 122, 0.2);
+    z-index: -1;
+}
+
+.timeline-item:last-child::before {
+    display: none;
+}
+
+.timeline-icon {
+    border: 2px solid var(--gold);
+    transition: all 0.3s ease;
+}
+
+.timeline-item.completed .timeline-icon {
+    transform: scale(1.1);
+    box-shadow: 0 0 15px rgba(199, 161, 122, 0.3);
+}
+
+.order-info {
+    text-align: center;
+    margin-top: 1rem;
+    color: var(--text-gray);
+}
+
+.order-time, .pickup-time {
+    font-size: 1.4rem;
+    margin: 0.5rem 0;
+}
+
+.pickup-time {
+    color: var(--gold);
+    font-weight: bold;
+}
+</style>
+{% endblock %} 

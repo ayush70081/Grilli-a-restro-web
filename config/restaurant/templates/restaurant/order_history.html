@@ -1,0 +1,369 @@
+{% extends 'restaurant/base.html' %}
+{% load static %}
+{% load custom_filters %}
+
+{% block content %}
+<div class="order-history-container">
+    <div class="page-header">
+        <h2 class="section-title">Order History</h2>
+        <p class="section-subtitle">View and track your past orders</p>
+    </div>
+    
+    {% if orders %}
+    <div class="orders-list">
+        {% for order in orders %}
+        <div class="order-card">
+            <div class="order-header">
+                <div class="order-info-primary">
+                    <h3>Order #{{ order.id }}</h3>
+                    <span class="order-status {{ order.status }}">{{ order.status|title }}</span>
+                </div>
+                <div class="order-info-secondary">
+                    <span class="order-date">
+                        <i class="far fa-calendar"></i>
+                        {{ order.created_at|date:"F j, Y" }}
+                    </span>
+                    <span class="order-time">
+                        <i class="far fa-clock"></i>
+                        {{ order.created_at|date:"g:i A" }}
+                    </span>
+                </div>
+            </div>
+            
+            <div class="order-content">
+                <div class="items-list">
+                    {% for item in order.items.all %}
+                    <div class="order-item">
+                        <div class="item-details">
+                            <span class="item-name">{{ item.menu_item.name }}</span>
+                            <div class="item-meta">
+                                <span class="item-quantity">Qty: {{ item.quantity }}</span>
+                                {% if item.selected_options %}
+                                <span class="item-options">
+                                    {% for option, choice in item.selected_options.items %}
+                                    {{ option }}: {{ choice }}{% if not forloop.last %}, {% endif %}
+                                    {% endfor %}
+                                </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <span class="item-price">₹{{ item.item_total|floatformat:2 }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <div class="order-summary">
+                    <div class="summary-row">
+                        <span>Subtotal</span>
+                        <span>₹{{ order.total_amount|floatformat:2 }}</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>GST (18%)</span>
+                        <span>₹{{ order.total_amount|calculate_gst|floatformat:2 }}</span>
+                    </div>
+                    <div class="summary-row total">
+                        <span>Total</span>
+                        <span>₹{{ order.get_total_with_tax|floatformat:2 }}</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="order-footer">
+                <div class="order-actions">
+                    <a href="{% url 'track_order' order.id %}" class="btn track-btn">
+                        <i class="fas fa-map-marker-alt"></i>
+                        Track Order
+                    </a>
+                    <button onclick="window.location.href='{% url 'reorder' order.id %}'" class="btn reorder-btn">
+                        <i class="fas fa-redo"></i>
+                        Reorder
+                    </button>
+                </div>
+                {% if order.special_instructions %}
+                <div class="special-instructions">
+                    <p><strong>Special Instructions:</strong> {{ order.special_instructions }}</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-history">
+        <div class="empty-icon">🍽️</div>
+        <h3>No Orders Yet</h3>
+        <p>Looks like you haven't placed any orders yet. Start exploring our delicious menu!</p>
+        <a href="{% url 'online_order' %}" class="btn start-order-btn">
+            Browse Menu
+            <i class="fas fa-arrow-right"></i>
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+.order-history-container {
+    padding: 12rem 2rem 6rem;
+    min-height: 100vh;
+    background: linear-gradient(rgba(0, 0, 0, 0.85), rgba(0, 0, 0, 0.95)),
+                url('https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1920&q=80') center/cover fixed;
+}
+
+.page-header {
+    text-align: center;
+    margin-bottom: 4rem;
+}
+
+.section-title {
+    color: var(--gold);
+    font-size: 3.6rem;
+    margin-bottom: 1rem;
+}
+
+.section-subtitle {
+    color: var(--text-gray);
+    font-size: 1.6rem;
+}
+
+.orders-list {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.order-card {
+    background: rgba(28, 28, 28, 0.95);
+    border-radius: 1.5rem;
+    border: 1px solid rgba(199, 161, 122, 0.1);
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.order-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+}
+
+.order-header {
+    padding: 2rem;
+    border-bottom: 1px solid rgba(199, 161, 122, 0.1);
+    background: rgba(199, 161, 122, 0.05);
+}
+
+.order-info-primary {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.order-info-primary h3 {
+    color: var(--gold);
+    font-size: 2rem;
+}
+
+.order-status {
+    padding: 0.5rem 1.5rem;
+    border-radius: 2rem;
+    font-size: 1.2rem;
+    text-transform: uppercase;
+    font-weight: 500;
+}
+
+.order-status.pending { background: rgba(255, 193, 7, 0.1); color: #ffc107; }
+.order-status.confirmed { background: rgba(33, 150, 243, 0.1); color: #2196f3; }
+.order-status.preparing { background: rgba(156, 39, 176, 0.1); color: #9c27b0; }
+.order-status.ready { background: rgba(76, 175, 80, 0.1); color: #4caf50; }
+.order-status.completed { background: rgba(0, 150, 136, 0.1); color: #009688; }
+.order-status.cancelled { background: rgba(244, 67, 54, 0.1); color: #f44336; }
+
+.order-info-secondary {
+    display: flex;
+    gap: 2rem;
+    color: var(--text-gray);
+    font-size: 1.4rem;
+}
+
+.order-content {
+    padding: 2rem;
+}
+
+.items-list {
+    margin-bottom: 2rem;
+}
+
+.order-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 1rem;
+    margin-bottom: 1rem;
+}
+
+.item-details {
+    flex: 1;
+}
+
+.item-name {
+    color: var(--white);
+    font-size: 1.6rem;
+    margin-bottom: 0.5rem;
+}
+
+.item-meta {
+    color: var(--text-gray);
+    font-size: 1.3rem;
+}
+
+.item-quantity {
+    margin-right: 1rem;
+}
+
+.item-price {
+    color: var(--gold);
+    font-size: 1.6rem;
+    font-weight: 500;
+}
+
+.order-summary {
+    background: rgba(199, 161, 122, 0.05);
+    padding: 2rem;
+    border-radius: 1rem;
+}
+
+.summary-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 1rem 0;
+    color: var(--text-gray);
+}
+
+.summary-row.total {
+    border-top: 1px solid rgba(199, 161, 122, 0.1);
+    margin-top: 1rem;
+    padding-top: 1.5rem;
+    color: var(--gold);
+    font-weight: 500;
+    font-size: 1.8rem;
+}
+
+.order-footer {
+    padding: 2rem;
+    border-top: 1px solid rgba(199, 161, 122, 0.1);
+}
+
+.order-actions {
+    display: flex;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.btn {
+    padding: 1rem 2rem;
+    border-radius: 0.8rem;
+    font-size: 1.4rem;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.track-btn {
+    background: var(--gold);
+    color: var(--white);
+}
+
+.track-btn:hover {
+    background: #b17d3b;
+    transform: translateY(-2px);
+}
+
+.reorder-btn {
+    background: rgba(76, 175, 80, 0.1);
+    color: #4caf50;
+    border: 1px solid rgba(76, 175, 80, 0.2);
+}
+
+.reorder-btn:hover {
+    background: rgba(76, 175, 80, 0.2);
+    transform: translateY(-2px);
+}
+
+.special-instructions {
+    margin-top: 1.5rem;
+    padding: 1.5rem;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 0.8rem;
+    color: var(--text-gray);
+    font-size: 1.4rem;
+}
+
+.empty-history {
+    text-align: center;
+    padding: 6rem 2rem;
+    background: rgba(28, 28, 28, 0.95);
+    border-radius: 1.5rem;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.empty-icon {
+    font-size: 5rem;
+    margin-bottom: 2rem;
+}
+
+.empty-history h3 {
+    color: var(--gold);
+    font-size: 2.4rem;
+    margin-bottom: 1rem;
+}
+
+.empty-history p {
+    color: var(--text-gray);
+    font-size: 1.6rem;
+    margin-bottom: 3rem;
+}
+
+.start-order-btn {
+    background: var(--gold);
+    color: var(--white);
+    display: inline-flex;
+    padding: 1.5rem 3rem;
+}
+
+.start-order-btn:hover {
+    background: #b17d3b;
+    transform: translateY(-2px);
+}
+
+@media (max-width: 768px) {
+    .order-info-primary {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+    
+    .order-info-secondary {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .order-actions {
+        flex-direction: column;
+    }
+    
+    .btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+</style>
+
+<!-- Add Font Awesome for icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+{% endblock %} 

@@ -1,0 +1,149 @@
+{% load static %}
+<!-- Header -->
+<header class="header">
+  <div class="container">
+    <div class="header-content">
+      <a href="{% url 'home' %}" class="logo">Grilli</a>
+      <div class="menu-toggle">☰</div>
+      <nav class="nav">
+        <ul class="nav-list" style="list-style-type: none; padding: 0; margin: 0;">
+          <li class="nav-item"><a href="{% url 'home' %}" class="nav-link">Home</a></li>
+          <li class="nav-item"><a href="{% url 'home' %}#about" class="nav-link">About</a></li>
+          <li class="nav-item"><a href="{% url 'home' %}#menu" class="nav-link">Menu</a></li>
+          <li class="nav-item"><a href="{% url 'online_order' %}" class="nav-link">Order Online</a></li>
+          <li class="nav-item"><a href="{% url 'home' %}#reservation" class="nav-link">Reservation</a></li>
+          <li class="nav-item"><a href="{% url 'home' %}#contact" class="nav-link">Contact</a></li>
+
+          {% if user.is_authenticated %}
+          <li class="nav-item"><a href="{% url 'my_reservations' %}" class="nav-link">My Reservations</a></li>
+          <li class="cart-icon">
+            <a href="{% url 'view_cart' %}">
+              🛒
+              {% if cart_count > 0 %}
+              <span class="cart-count">{{ cart_count }}</span>
+              {% endif %}
+            </a>
+          </li>
+          <li class="user-info">
+            <a href="#" class="nav-link user-menu">
+              👤 {{ user.username }}
+              <span class="user-dropdown">▼</span>
+            </a>
+            <ul class="dropdown-menu">
+              <li><a href="{% url 'view_cart' %}">My Cart</a></li>
+              <li><a href="{% url 'order_history' %}">Order History</a></li>
+              <li><a href="{% url 'logout' %}">Logout</a></li>
+            </ul>
+          </li>
+          {% else %}
+          <li><a href="#" class="nav-link" id="loginLink">Login</a></li>
+          {% endif %}
+        </ul>
+      </nav>
+    </div>
+  </div>
+</header>
+
+<script src="{% static 'restaurant/js/mobile-menu.js' %}"></script>
+
+<style>
+  /* User Menu Styles */
+  .user-info {
+    position: relative;
+  }
+
+  .user-menu {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: rgba(199, 161, 122, 0.1);
+    border-radius: 2rem;
+    transition: all 0.3s ease;
+  }
+
+  .user-menu:hover {
+    background: rgba(199, 161, 122, 0.2);
+  }
+
+  .user-dropdown {
+    font-size: 1rem;
+    transition: transform 0.3s ease;
+  }
+
+  .user-info:hover .user-dropdown {
+    transform: rotate(180deg);
+  }
+
+  .dropdown-menu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background: rgba(28, 28, 28, 0.95);
+    border: 1px solid rgba(199, 161, 122, 0.2);
+    border-radius: 0.5rem;
+    padding: 0.5rem;
+    min-width: 180px;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(10px);
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+  }
+
+  .user-info:hover .dropdown-menu {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+  }
+
+  .dropdown-menu li {
+    list-style: none;
+  }
+
+  .dropdown-menu a {
+    display: block;
+    padding: 0.8rem 1.5rem;
+    color: var(--text-gray);
+    text-decoration: none;
+    font-size: 1.4rem;
+    transition: all 0.3s ease;
+    border-radius: 0.3rem;
+  }
+
+  .dropdown-menu a:hover {
+    background: rgba(199, 161, 122, 0.1);
+    color: var(--gold);
+    transform: translateX(5px);
+  }
+
+  /* Responsive adjustments */
+  @media screen and (max-width: 768px) {
+    .user-menu {
+      padding: 1rem;
+      justify-content: center;
+    }
+
+    .dropdown-menu {
+      position: static;
+      background: transparent;
+      border: none;
+      box-shadow: none;
+      opacity: 1;
+      visibility: visible;
+      transform: none;
+      padding: 0;
+    }
+
+    .dropdown-menu a {
+      padding: 1rem;
+      text-align: center;
+    }
+
+    .user-dropdown {
+      display: none;
+    }
+  }
+</style> 

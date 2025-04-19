@@ -1,0 +1,708 @@
+{% extends 'restaurant/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="cart-container">
+    <div class="cart-header">
+        <h2 class="section-title">Your Cart</h2>
+        <p class="section-subtitle">Review your order before checkout</p>
+    </div>
+    
+    {% if messages %}
+    <div class="messages">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    
+    {% if cart_items %}
+    <div class="cart-content">
+        <div class="cart-items">
+            {% for item in cart_items %}
+            <div class="cart-item" data-item-id="{{ item.id }}">
+                <div class="item-image">
+                    <img src="{{ item.menu_item.image|default:'https://via.placeholder.com/150' }}" 
+                         alt="{{ item.menu_item.name }}"
+                         loading="lazy">
+                </div>
+                <div class="item-details">
+                    <h3 class="item-name">{{ item.menu_item.name }}</h3>
+                    <p class="item-description">{{ item.menu_item.description }}</p>
+                    
+                    {% if item.selected_options %}
+                    <div class="selected-options">
+                        {% for option, choice in item.selected_options.items %}
+                        <span class="option-badge">{{ option }}: {{ choice }}</span>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    
+                    <div class="item-controls">
+                        <div class="quantity-control">
+                            <button class="qty-btn minus" aria-label="Decrease quantity">−</button>
+                            <input type="number" value="{{ item.quantity }}" min="1" max="10" 
+                                   aria-label="Item quantity">
+                            <button class="qty-btn plus" aria-label="Increase quantity">+</button>
+                        </div>
+                        <div class="item-price">₹{{ item.item_total|floatformat:2 }}</div>
+                    </div>
+                </div>
+                <button class="remove-btn" aria-label="Remove item">
+                    <span class="remove-icon">×</span>
+                </button>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <div class="cart-summary">
+            <div class="summary-header">
+                <h3>Order Summary</h3>
+                <span class="items-count">{{ cart_items|length }} items</span>
+            </div>
+            
+            <div class="summary-content">
+                <div class="summary-row">
+                    <span>Subtotal</span>
+                    <span>₹{{ cart.total_amount|floatformat:2 }}</span>
+                </div>
+                <div class="summary-row">
+                    <span>Tax (18% GST)</span>
+                    <span>₹{{ tax_amount|floatformat:2 }}</span>
+                </div>
+                <div class="summary-row total">
+                    <span>Total</span>
+                    <span>₹{{ total_with_tax|floatformat:2 }}</span>
+                </div>
+            </div>
+            
+            <form id="checkout-form" method="POST" action="{% url 'checkout' %}">
+                {% csrf_token %}
+                <input type="hidden" name="pickup_time" value="{{ pickup_time|date:'Y-m-d H:i' }}">
+                
+                <div class="pickup-info">
+                    <h4>Estimated Pickup Time</h4>
+                    <p>{{ pickup_time|date:"g:i A" }}</p>
+                    <small class="pickup-note">Your order will be ready for pickup in approximately 30 minutes</small>
+                </div>
+                
+                <div class="special-instructions">
+                    <label for="special_instructions">Special Instructions</label>
+                    <textarea id="special_instructions" name="special_instructions" 
+                              placeholder="Any special requests or notes for your order?"
+                              rows="3"></textarea>
+                </div>
+                
+                <button type="submit" class="checkout-btn">
+                    <span class="btn-text">Place Order</span>
+                    <span class="btn-icon">→</span>
+                </button>
+            </form>
+            
+            <div class="continue-shopping">
+                <a href="{% url 'online_order' %}" class="continue-link">
+                    <span class="back-icon">←</span>
+                    Continue Shopping
+                </a>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="empty-cart">
+        <div class="empty-cart-icon">🛒</div>
+        <h3>Your cart is empty</h3>
+        <p>Add some delicious items to your cart and they will appear here</p>
+        <a href="{% url 'online_order' %}" class="continue-shopping-btn">
+            Start Ordering
+            <span class="btn-icon">→</span>
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+/* Cart Container */
+.cart-container {
+    padding: 10rem 2rem 6rem;
+    min-height: 100vh;
+    background: linear-gradient(rgba(0, 0, 0, 0.85), rgba(0, 0, 0, 0.95)),
+                url('https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1920&q=80') center/cover fixed;
+}
+
+.cart-header {
+    text-align: center;
+    margin-bottom: 4rem;
+}
+
+.section-subtitle {
+    color: var(--text-gray);
+    font-size: 1.6rem;
+    margin-top: -1rem;
+}
+
+/* Cart Content Layout */
+.cart-content {
+    display: grid;
+    grid-template-columns: 1fr 400px;
+    gap: 3rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* Cart Items */
+.cart-items {
+    background: rgba(28, 28, 28, 0.95);
+    border-radius: 1.5rem;
+    padding: 2rem;
+}
+
+.cart-item {
+    display: grid;
+    grid-template-columns: 120px 1fr auto;
+    gap: 2rem;
+    padding: 2rem;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 1rem;
+    margin-bottom: 2rem;
+    transition: all 0.3s ease;
+}
+
+.cart-item:hover {
+    background: rgba(255, 255, 255, 0.05);
+    transform: translateY(-2px);
+}
+
+.item-image img {
+    width: 120px;
+    height: 120px;
+    object-fit: cover;
+    border-radius: 0.8rem;
+}
+
+.item-name {
+    color: var(--white);
+    font-size: 1.8rem;
+    margin-bottom: 0.5rem;
+}
+
+.item-description {
+    color: var(--text-gray);
+    font-size: 1.4rem;
+    margin-bottom: 1rem;
+}
+
+.selected-options {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.5rem;
+}
+
+.option-badge {
+    background: rgba(199, 161, 122, 0.1);
+    color: var(--gold);
+    padding: 0.5rem 1rem;
+    border-radius: 2rem;
+    font-size: 1.2rem;
+}
+
+.item-controls {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+}
+
+/* Quantity Controls */
+.quantity-control {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 0.5rem;
+    border-radius: 0.5rem;
+}
+
+.qty-btn {
+    width: 3rem;
+    height: 3rem;
+    background: var(--gold);
+    border: none;
+    color: var(--white);
+    font-size: 1.8rem;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.qty-btn:hover {
+    background: var(--gold-light);
+}
+
+.quantity-control input {
+    width: 4rem;
+    text-align: center;
+    background: transparent;
+    border: none;
+    color: var(--white);
+    font-size: 1.6rem;
+}
+
+.item-price {
+    color: var(--gold);
+    font-size: 2rem;
+    font-weight: bold;
+}
+
+.remove-btn {
+    background: none;
+    border: none;
+    color: var(--text-gray);
+    font-size: 2.4rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    padding: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.remove-btn:hover {
+    color: #ef4444;
+    transform: scale(1.1);
+}
+
+/* Cart Summary */
+.cart-summary {
+    background: rgba(28, 28, 28, 0.95);
+    border-radius: 1.5rem;
+    padding: 2rem;
+    height: fit-content;
+    position: sticky;
+    top: 10rem;
+}
+
+.summary-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid rgba(199, 161, 122, 0.1);
+}
+
+.summary-header h3 {
+    color: var(--white);
+    font-size: 2rem;
+}
+
+.items-count {
+    color: var(--text-gray);
+    font-size: 1.4rem;
+}
+
+.summary-content {
+    margin-bottom: 2rem;
+}
+
+.summary-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 1rem 0;
+    color: var(--text-gray);
+    font-size: 1.6rem;
+}
+
+.summary-row.total {
+    border-top: 2px solid rgba(199, 161, 122, 0.2);
+    margin-top: 1rem;
+    padding-top: 1.5rem;
+    color: var(--white);
+    font-size: 2rem;
+    font-weight: bold;
+}
+
+/* Form Styles */
+.pickup-info, .special-instructions {
+    margin-bottom: 2rem;
+}
+
+label {
+    display: block;
+    color: var(--text-gray);
+    margin-bottom: 0.8rem;
+    font-size: 1.4rem;
+}
+
+.required {
+    color: #ef4444;
+    margin-left: 0.3rem;
+}
+
+select, textarea {
+    width: 100%;
+    padding: 1.2rem;
+    background: rgba(28, 28, 28, 0.95);
+    border: 1px solid rgba(199, 161, 122, 0.2);
+    border-radius: 0.8rem;
+    color: var(--white);
+    font-size: 1.4rem;
+    transition: all 0.3s ease;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+}
+
+select option {
+    background: rgba(28, 28, 28, 0.95);
+    color: var(--white);
+    padding: 1.2rem;
+}
+
+.pickup-info {
+    position: relative;
+}
+
+.pickup-info::after {
+    content: '▼';
+    position: absolute;
+    right: 1.5rem;
+    top: 4.5rem;
+    color: var(--gold);
+    pointer-events: none;
+    font-size: 1.2rem;
+}
+
+select:focus, textarea:focus {
+    border-color: var(--gold);
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(199, 161, 122, 0.1);
+}
+
+select:disabled, textarea:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+select::placeholder, textarea::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+select:-moz-focusring {
+    color: transparent;
+    text-shadow: 0 0 0 var(--white);
+}
+
+select::-webkit-scrollbar {
+    width: 8px;
+}
+
+select::-webkit-scrollbar-track {
+    background: rgba(28, 28, 28, 0.95);
+}
+
+select::-webkit-scrollbar-thumb {
+    background: var(--gold);
+    border-radius: 4px;
+}
+
+.checkout-btn {
+    width: 100%;
+    padding: 1.5rem;
+    background: var(--gold);
+    color: var(--white);
+    border: none;
+    border-radius: 0.8rem;
+    font-size: 1.6rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+}
+
+.checkout-btn:hover {
+    background: var(--gold-light);
+    transform: translateY(-2px);
+}
+
+.btn-icon {
+    transition: transform 0.3s ease;
+}
+
+.checkout-btn:hover .btn-icon {
+    transform: translateX(5px);
+}
+
+/* Continue Shopping Link */
+.continue-shopping {
+    margin-top: 2rem;
+    text-align: center;
+}
+
+.continue-link {
+    color: var(--text-gray);
+    text-decoration: none;
+    font-size: 1.4rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
+}
+
+.continue-link:hover {
+    color: var(--gold);
+}
+
+.back-icon {
+    transition: transform 0.3s ease;
+}
+
+.continue-link:hover .back-icon {
+    transform: translateX(-5px);
+}
+
+/* Empty Cart */
+.empty-cart {
+    text-align: center;
+    padding: 4rem;
+    background: rgba(28, 28, 28, 0.95);
+    border-radius: 1.5rem;
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.empty-cart-icon {
+    font-size: 5rem;
+    margin-bottom: 2rem;
+}
+
+.empty-cart h3 {
+    color: var(--white);
+    font-size: 2.4rem;
+    margin-bottom: 1rem;
+}
+
+.empty-cart p {
+    color: var(--text-gray);
+    font-size: 1.6rem;
+    margin-bottom: 3rem;
+}
+
+.continue-shopping-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.5rem 3rem;
+    background: var(--gold);
+    color: var(--white);
+    text-decoration: none;
+    border-radius: 0.8rem;
+    font-size: 1.6rem;
+    transition: all 0.3s ease;
+}
+
+.continue-shopping-btn:hover {
+    background: var(--gold-light);
+    transform: translateY(-2px);
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .cart-content {
+        grid-template-columns: 1fr 350px;
+        gap: 2rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .cart-content {
+        grid-template-columns: 1fr;
+    }
+    
+    .cart-item {
+        grid-template-columns: 100px 1fr;
+    }
+    
+    .item-controls {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .cart-summary {
+        position: static;
+    }
+}
+
+@media (max-width: 480px) {
+    .cart-item {
+        grid-template-columns: 1fr;
+        text-align: center;
+    }
+    
+    .item-image {
+        margin: 0 auto;
+    }
+    
+    .item-controls {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .selected-options {
+        justify-content: center;
+    }
+}
+
+/* Add these styles to your existing CSS */
+.info-message {
+    color: var(--gold);
+    font-size: 1.2rem;
+    margin-top: 0.8rem;
+    padding: 0.8rem;
+    background: rgba(199, 161, 122, 0.1);
+    border-radius: 0.5rem;
+    line-height: 1.4;
+}
+
+.pickup-info select:disabled {
+    background: rgba(28, 28, 28, 0.7);
+    cursor: not-allowed;
+}
+
+/* Add to your existing styles */
+.pickup-info {
+    background: rgba(199, 161, 122, 0.1);
+    padding: 1.5rem;
+    border-radius: 0.8rem;
+    margin-bottom: 2rem;
+}
+
+.pickup-info h4 {
+    color: var(--gold);
+    margin-bottom: 0.5rem;
+    font-size: 1.6rem;
+}
+
+.pickup-info p {
+    color: var(--white);
+    font-size: 2rem;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+}
+
+.pickup-note {
+    color: var(--text-gray);
+    font-size: 1.2rem;
+    font-style: italic;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Quantity controls
+    document.querySelectorAll('.qty-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const input = this.parentElement.querySelector('input');
+            const currentValue = parseInt(input.value);
+            const itemId = this.closest('.cart-item').dataset.itemId;
+            
+            if (this.classList.contains('minus')) {
+                if (currentValue > 1) {
+                    updateQuantity(itemId, currentValue - 1);
+                }
+            } else {
+                if (currentValue < 10) {
+                    updateQuantity(itemId, currentValue + 1);
+                }
+            }
+        });
+    });
+    
+    // Remove buttons
+    document.querySelectorAll('.remove-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const itemId = this.closest('.cart-item').dataset.itemId;
+            updateQuantity(itemId, 0);
+        });
+    });
+    
+    async function updateQuantity(itemId, quantity) {
+        try {
+            const response = await fetch('/update-cart/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({
+                    item_id: itemId,
+                    quantity: quantity
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (data.status === 'success') {
+                location.reload();
+            } else {
+                showMessage('Error updating cart', 'error');
+            }
+        } catch (error) {
+            showMessage('Error updating cart', 'error');
+        }
+    }
+    
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    
+    function showMessage(message, type) {
+        const existingMessage = document.querySelector('.alert-message');
+        if (existingMessage) {
+            existingMessage.remove();
+        }
+        
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `alert-message ${type}`;
+        messageDiv.textContent = message;
+        
+        document.body.appendChild(messageDiv);
+        
+        setTimeout(() => {
+            messageDiv.remove();
+        }, 3000);
+    }
+    
+    function validateCheckout() {
+        const pickupTime = document.getElementById('pickup_time').value;
+        const errorDiv = document.getElementById('pickup-time-error');
+        
+        if (!pickupTime) {
+            errorDiv.textContent = 'Please select a pickup time';
+            return false;
+        }
+        
+        return true;
+    }
+    
+    // Clear error message when user selects a time
+    document.getElementById('pickup_time').addEventListener('change', function() {
+        document.getElementById('pickup-time-error').textContent = '';
+    });
+});
+</script>
+{% endblock %} 

@@ -1,0 +1,520 @@
+{% extends 'restaurant/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="reservations-container">
+    <div class="page-header">
+        <h1 class="section-title">My Reservations</h1>
+    </div>
+
+    {% if messages %}
+    <div class="messages">
+        {% for message in messages %}
+        <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if reservations %}
+    <div class="reservation-filters">
+        <button class="filter-btn active" data-filter="all">All</button>
+        <button class="filter-btn" data-filter="upcoming">Upcoming</button>
+        <button class="filter-btn" data-filter="past">Past</button>
+    </div>
+
+    <div class="reservations-grid">
+        {% for reservation in reservations %}
+        <div class="reservation-card {% if reservation.date < today_date %}past-reservation{% endif %}" 
+             data-type="{% if reservation.date < today_date %}past{% else %}upcoming{% endif %}">
+            <div class="reservation-header">
+                <div class="header-left">
+                    <h3>{{ reservation.name }}</h3>
+                </div>
+                <span class="reservation-status">
+                    {% if reservation.date < today_date %}
+                    <span class="status past"><i class="fas fa-history"></i> Past</span>
+                    {% else %}
+                    <span class="status upcoming"><i class="fas fa-clock"></i> Upcoming</span>
+                    {% endif %}
+                </span>
+            </div>
+            
+            <div class="reservation-details">
+                <div class="details-grid">
+                    <div class="detail-item">
+                        <div class="detail-label">
+                            <i class="fas fa-calendar"></i>
+                            <span>Date</span>
+                        </div>
+                        <div class="detail-value">{{ reservation.date|date:"F d, Y" }}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">
+                            <i class="fas fa-clock"></i>
+                            <span>Time</span>
+                        </div>
+                        <div class="detail-value">{{ reservation.time|time:"g:i A" }}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">
+                            <i class="fas fa-users"></i>
+                            <span>Guests</span>
+                        </div>
+                        <div class="detail-value">{{ reservation.guests }} {% if reservation.guests == 1 %}person{% else %}people{% endif %}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">
+                            <i class="fas fa-phone"></i>
+                            <span>Phone</span>
+                        </div>
+                        <div class="detail-value">{{ reservation.phone }}</div>
+                    </div>
+                </div>
+
+                {% if reservation.special_requests %}
+                <div class="special-requests">
+                    <div class="detail-label">
+                        <i class="fas fa-comment-alt"></i>
+                        <span>Special Requests</span>
+                    </div>
+                    <div class="detail-value">{{ reservation.special_requests }}</div>
+                </div>
+                {% endif %}
+            </div>
+
+            {% if reservation.date >= today_date %}
+            <div class="reservation-actions">
+                <a href="{% url 'modify_reservation' reservation.id %}" class="btn btn-modify">
+                    <i class="fas fa-edit"></i> Modify
+                </a>
+                <button class="btn btn-cancel" onclick="confirmCancel({{ reservation.id }})">
+                    <i class="fas fa-times"></i> Cancel
+                </button>
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="no-reservations">
+        <div class="empty-state">
+            <i class="fas fa-calendar-alt"></i>
+            <h2>No Reservations Yet</h2>
+            <p>You haven't made any reservations. Would you like to book a table?</p>
+            <a href="{% url 'home' %}#reservation" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Make a Reservation
+            </a>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Cancel Confirmation Modal -->
+<div id="cancelModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2><i class="fas fa-exclamation-triangle"></i> Cancel Reservation</h2>
+            <button onclick="closeModal()" class="close-btn">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <p>Are you sure you want to cancel this reservation? This action cannot be undone.</p>
+        <div class="modal-actions">
+            <button onclick="closeModal()" class="btn btn-secondary">
+                <i class="fas fa-times"></i> No, Keep it
+            </button>
+            <form id="cancelForm" method="POST" style="display: inline;">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger">
+                    <i class="fas fa-check"></i> Yes, Cancel
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .reservations-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 12rem 2rem 4rem 2rem;
+    }
+
+    .page-header {
+        text-align: center;
+        margin-bottom: 3rem;
+    }
+
+    .reservation-filters {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 3rem;
+        padding: 1rem;
+        background: rgba(28, 28, 28, 0.5);
+        border-radius: 1rem;
+        justify-content: center;
+    }
+
+    .filter-btn {
+        padding: 1rem 2rem;
+        border: 1px solid rgba(199, 161, 122, 0.2);
+        border-radius: 2rem;
+        background: transparent;
+        color: var(--text-gray);
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 1.4rem;
+    }
+
+    .filter-btn.active {
+        background: var(--gold);
+        color: var(--black);
+        border-color: var(--gold);
+    }
+
+    .filter-btn:hover:not(.active) {
+        background: rgba(199, 161, 122, 0.1);
+        color: var(--gold);
+    }
+
+    .reservations-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 3rem;
+        margin-top: 2rem;
+    }
+
+    .reservation-card {
+        background: rgba(28, 28, 28, 0.95);
+        border: 1px solid rgba(199, 161, 122, 0.2);
+        border-radius: 2rem;
+        padding: 0;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .reservation-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 0.4rem;
+        background: linear-gradient(to right, var(--gold), var(--gold-light));
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .reservation-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    .reservation-card:hover::before {
+        opacity: 1;
+    }
+
+    .past-reservation {
+        opacity: 0.7;
+    }
+
+    .reservation-header {
+        background: rgba(199, 161, 122, 0.05);
+        padding: 2rem;
+        border-bottom: 1px solid rgba(199, 161, 122, 0.2);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .header-left {
+        display: flex;
+        align-items: center;
+    }
+
+    .reservation-header h3 {
+        color: var(--gold);
+        font-size: 2rem;
+        font-weight: 600;
+        margin: 0;
+    }
+
+    .status {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.8rem 1.5rem;
+        border-radius: 2rem;
+        font-size: 1.3rem;
+        font-weight: 500;
+        letter-spacing: 0.5px;
+    }
+
+    .details-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 2rem;
+        padding: 2rem;
+    }
+
+    .detail-item {
+        display: flex;
+        flex-direction: column;
+        gap: 0.8rem;
+    }
+
+    .detail-label {
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+        color: var(--text-gray);
+        font-size: 1.4rem;
+    }
+
+    .detail-label i {
+        color: var(--gold);
+        font-size: 1.6rem;
+    }
+
+    .detail-value {
+        color: var(--white);
+        font-size: 1.6rem;
+        font-weight: 500;
+    }
+
+    .special-requests {
+        padding: 2rem;
+        border-top: 1px solid rgba(199, 161, 122, 0.2);
+    }
+
+    .special-requests .detail-value {
+        margin-top: 1rem;
+        line-height: 1.6;
+        color: var(--text-gray);
+    }
+
+    .reservation-actions {
+        padding: 2rem;
+        display: flex;
+        gap: 1.5rem;
+        border-top: 1px solid rgba(199, 161, 122, 0.2);
+    }
+
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.8rem;
+        padding: 1.2rem 2.4rem;
+        border-radius: 3rem;
+        font-size: 1.4rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        border: none;
+        text-decoration: none;
+        font-weight: 500;
+        flex: 1;
+    }
+
+    .btn-modify {
+        background: rgba(199, 161, 122, 0.1);
+        color: var(--gold);
+        border: 1px solid rgba(199, 161, 122, 0.2);
+    }
+
+    .btn-modify:hover {
+        background: rgba(199, 161, 122, 0.2);
+        transform: translateY(-2px);
+    }
+
+    .btn-cancel {
+        background: rgba(220, 38, 38, 0.1);
+        color: #DC2626;
+        border: 1px solid rgba(220, 38, 38, 0.2);
+    }
+
+    .btn-cancel:hover {
+        background: rgba(220, 38, 38, 0.2);
+        transform: translateY(-2px);
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 6rem 2rem;
+        background: rgba(28, 28, 28, 0.95);
+        border-radius: 2rem;
+        border: 1px solid rgba(199, 161, 122, 0.2);
+    }
+
+    .empty-state i {
+        font-size: 6rem;
+        color: var(--gold);
+        margin-bottom: 2rem;
+    }
+
+    .empty-state h2 {
+        font-size: 2.4rem;
+        color: var(--gold);
+        margin-bottom: 1.5rem;
+    }
+
+    .empty-state p {
+        font-size: 1.8rem;
+        color: var(--text-gray);
+        margin-bottom: 3rem;
+    }
+
+    /* Enhanced Modal Styles */
+    .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        backdrop-filter: blur(5px);
+        z-index: 1000;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .modal-content {
+        background: var(--black);
+        padding: 0;
+        border-radius: 2rem;
+        max-width: 450px;
+        width: 90%;
+        border: 1px solid rgba(199, 161, 122, 0.2);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    }
+
+    .modal-header {
+        padding: 2rem;
+        border-bottom: 1px solid rgba(199, 161, 122, 0.2);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .modal-header h2 {
+        color: var(--gold);
+        font-size: 2.2rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .close-btn {
+        background: none;
+        border: none;
+        color: var(--text-gray);
+        font-size: 2rem;
+        cursor: pointer;
+        transition: color 0.3s ease;
+    }
+
+    .close-btn:hover {
+        color: var(--gold);
+    }
+
+    .modal p {
+        padding: 2rem;
+        margin: 0;
+        font-size: 1.6rem;
+        color: var(--text-gray);
+        line-height: 1.6;
+    }
+
+    .modal-actions {
+        padding: 2rem;
+        display: flex;
+        gap: 1.5rem;
+        justify-content: flex-end;
+        border-top: 1px solid rgba(199, 161, 122, 0.2);
+    }
+
+    @media (max-width: 768px) {
+        .reservations-container {
+            padding: 10rem 1rem 2rem 1rem;
+        }
+
+        .reservations-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .reservation-filters {
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            flex: 1;
+            min-width: 120px;
+        }
+
+        .details-grid {
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+        }
+
+        .reservation-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 1.5rem;
+        }
+
+        .status {
+            align-self: flex-start;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Filter functionality
+    document.querySelectorAll('.filter-btn').forEach(button => {
+        button.addEventListener('click', () => {
+            // Update active button
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            button.classList.add('active');
+
+            // Filter cards
+            const filter = button.dataset.filter;
+            document.querySelectorAll('.reservation-card').forEach(card => {
+                if (filter === 'all' || card.dataset.type === filter) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        });
+    });
+
+    function confirmCancel(reservationId) {
+        const modal = document.getElementById('cancelModal');
+        const form = document.getElementById('cancelForm');
+        form.action = `/cancel-reservation/${reservationId}/`;
+        modal.style.display = 'flex';
+    }
+
+    function closeModal() {
+        const modal = document.getElementById('cancelModal');
+        modal.style.display = 'none';
+    }
+
+    // Close modal when clicking outside
+    window.onclick = function(event) {
+        const modal = document.getElementById('cancelModal');
+        if (event.target == modal) {
+            modal.style.display = 'none';
+        }
+    }
+</script>
+{% endblock %} 

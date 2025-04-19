@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Grilli Restaurant{% endblock %}</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'restaurant/css/base.css' %}">
+    <link rel="stylesheet" href="{% static 'restaurant/css/header.css' %}">
+    <link rel="stylesheet" href="{% static 'restaurant/css/footer.css' %}">
+    {% block extra_css %}{% endblock %}
+    <style>
+        /* Add or update these styles */
+        .nav-list {
+            list-style: none;  /* Remove bullet points */
+            display: flex;
+            align-items: center;
+            gap: 3rem;
+            margin: 0;
+            padding: 0;
+        }
+
+        .nav-item {
+            margin: 0;  /* Remove any default margins */
+        }
+
+        .nav-link {
+            color: var(--text-gray);
+            text-decoration: none;
+            font-size: 1.6rem;
+            transition: color 0.3s ease;
+        }
+
+        .nav-link:hover,
+        .nav-link.active {
+            color: var(--gold);
+        }
+    </style>
+</head>
+<body>
+    {% include 'restaurant/header.html' %}
+
+    <div class="messages-container">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert-message">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    </div>
+
+    {% block content %}{% endblock %}
+
+    {% include 'restaurant/footer.html' %}
+
+    <script src="{% static 'restaurant/js/alerts.js' %}"></script>
+    <script src="{% static 'restaurant/js/navigation.js' %}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html> 

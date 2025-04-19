@@ -1,0 +1,73 @@
+<!-- Footer -->
+<footer>
+  <div class="container">
+    <div class="footer-content">
+      <div class="footer-section">
+        <h3 class="footer-title">About Us</h3>
+        <p>
+          Grilli is committed to providing an exceptional dining experience
+          with the finest ingredients and impeccable service.
+        </p>
+      </div>
+      <div class="footer-section">
+        <h3 class="footer-title">Opening Hours</h3>
+        <p>
+          Monday - Friday: 11am - 10pm
+          <br />
+          Saturday - Sunday: 10am - 11pm
+        </p>
+      </div>
+      <div class="footer-section">
+        <h3 class="footer-title">Quick Links</h3>
+        <ul class="footer-links">
+          <li><a href="{% url 'home' %}#home" class="footer-link">Home</a></li>
+          <li><a href="{% url 'home' %}#menu" class="footer-link">Menu</a></li>
+          <li><a href="{% url 'home' %}#reservation" class="footer-link">Reservation</a></li>
+          <li><a href="{% url 'home' %}#contact" class="footer-link">Contact</a></li>
+        </ul>
+      </div>
+      <div class="footer-section">
+        <h3 class="footer-title">Follow Us</h3>
+        <ul class="footer-links">
+          <li><a href="#" class="footer-link">Facebook</a></li>
+          <li><a href="#" class="footer-link">Instagram</a></li>
+          <li><a href="#" class="footer-link">Twitter</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="copyright">
+      <p>&copy; 2024 Grilli Restaurant. All rights reserved.</p>
+    </div>
+  </div>
+</footer>
+
+<!-- Scroll to Top Button -->
+<div class="scroll-top">↑</div>
+
+<script>
+  // Navigation Toggle
+  const menuToggle = document.querySelector(".menu-toggle");
+  const navList = document.querySelector(".nav-list");
+
+  menuToggle.addEventListener("click", () => {
+    navList.classList.toggle("active");
+  });
+
+  // Scroll to Top
+  const scrollTop = document.querySelector(".scroll-top");
+
+  window.addEventListener("scroll", () => {
+    if (window.pageYOffset > 500) {
+      scrollTop.classList.add("active");
+    } else {
+      scrollTop.classList.remove("active");
+    }
+  });
+
+  scrollTop.addEventListener("click", () => {
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+  });
+</script> 

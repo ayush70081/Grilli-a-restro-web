@@ -1,0 +1,51 @@
+{% extends 'restaurant/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="checkout-container">
+    <div class="checkout-content">
+        <div class="order-summary">
+            <h2 class="section-title">Order Summary</h2>
+            {% for item in cart.items.all %}
+            <div class="summary-item">
+                <span class="item-name">{{ item.menu_item.name }} × {{ item.quantity }}</span>
+                <span class="item-price">₹{{ item.item_total|floatformat:2 }}</span>
+            </div>
+            {% endfor %}
+            
+            <div class="summary-total">
+                <div class="subtotal">
+                    <span>Subtotal</span>
+                    <span>₹{{ cart.total_amount|floatformat:2 }}</span>
+                </div>
+                <div class="tax">
+                    <span>GST (18%)</span>
+                    <span>₹{{ cart.total_amount|calculate_gst|floatformat:2 }}</span>
+                </div>
+                <div class="total">
+                    <span>Total</span>
+                    <span>₹{{ cart.get_total_with_tax|floatformat:2 }}</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="checkout-form">
+            <h3>Pickup Details</h3>
+            <form action="{% url 'checkout' %}" method="POST">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="pickup_time">Pickup Time</label>
+                    <input type="datetime-local" id="pickup_time" name="pickup_time" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="special_instructions">Special Instructions</label>
+                    <textarea id="special_instructions" name="special_instructions" rows="3"></textarea>
+                </div>
+                
+                <button type="submit" class="btn btn-primary">Place Order</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %} 

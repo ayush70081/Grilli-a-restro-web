@@ -1,0 +1,302 @@
+{% extends 'restaurant/base.html' %}
+{% load static %}
+{% load custom_filters %}
+
+{% block content %}
+<div class="confirmation-container">
+    <div class="confirmation-card">
+        <div class="success-animation">
+            <div class="checkmark">
+                <div class="check-icon">✓</div>
+            </div>
+        </div>
+
+        <div class="confirmation-header">
+            <h2>Order Confirmed!</h2>
+            <p class="order-id">Order #{{ order.id }}</p>
+            <p class="thank-you">Thank you for your order</p>
+        </div>
+
+        <div class="order-details">
+            <div class="detail-section pickup-info">
+                <h3><i class="far fa-clock"></i> Pickup Time</h3>
+                <p>{{ order.pickup_time|date:"g:i A" }}</p>
+                <p class="date">{{ order.pickup_time|date:"l, F j, Y" }}</p>
+            </div>
+
+            <div class="detail-section items-list">
+                <h3><i class="fas fa-utensils"></i> Order Summary</h3>
+                {% for item in order.items.all %}
+                <div class="order-item">
+                    <div class="item-info">
+                        <span class="item-name">{{ item.menu_item.name }}</span>
+                        <span class="item-quantity">×{{ item.quantity }}</span>
+                    </div>
+                    <span class="item-price">₹{{ item.item_total|floatformat:2 }}</span>
+                </div>
+                {% if item.selected_options %}
+                <div class="item-options">
+                    {% for option, choice in item.selected_options.items %}
+                    <span>{{ option }}: {{ choice }}</span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                {% endfor %}
+            </div>
+
+            <div class="detail-section price-summary">
+                <div class="summary-row">
+                    <span>Subtotal</span>
+                    <span>₹{{ order.total_amount|floatformat:2 }}</span>
+                </div>
+                <div class="summary-row">
+                    <span>GST (18%)</span>
+                    <span>₹{{ order.total_amount|calculate_gst|floatformat:2 }}</span>
+                </div>
+                <div class="summary-row total">
+                    <span>Total</span>
+                    <span>₹{{ order.get_total_with_tax|floatformat:2 }}</span>
+                </div>
+            </div>
+
+            {% if order.special_instructions %}
+            <div class="detail-section special-instructions">
+                <h3><i class="fas fa-comment-alt"></i> Special Instructions</h3>
+                <p>{{ order.special_instructions }}</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="confirmation-footer">
+            <a href="{% url 'track_order' order.id %}" class="track-btn">
+                <i class="fas fa-map-marker-alt"></i>
+                Track Order
+            </a>
+            <a href="{% url 'online_order' %}" class="continue-btn">
+                <i class="fas fa-arrow-left"></i>
+                Continue Shopping
+            </a>
+        </div>
+    </div>
+</div>
+
+<style>
+.confirmation-container {
+    padding: 12rem 2rem 6rem;
+    min-height: 100vh;
+    background: linear-gradient(rgba(0, 0, 0, 0.85), rgba(0, 0, 0, 0.95)),
+                url('https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1920&q=80') center/cover fixed;
+}
+
+.confirmation-card {
+    max-width: 800px;
+    margin: 0 auto;
+    background: rgba(28, 28, 28, 0.95);
+    border-radius: 2rem;
+    padding: 3rem;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(199, 161, 122, 0.1);
+}
+
+.success-animation {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.checkmark {
+    width: 8rem;
+    height: 8rem;
+    border-radius: 50%;
+    background: var(--gold);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    animation: scale-up 0.5s ease-out;
+}
+
+.check-icon {
+    color: white;
+    font-size: 4rem;
+    animation: check-appear 0.5s ease-out 0.2s both;
+}
+
+@keyframes scale-up {
+    0% { transform: scale(0); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+}
+
+@keyframes check-appear {
+    0% { opacity: 0; transform: scale(0); }
+    100% { opacity: 1; transform: scale(1); }
+}
+
+.confirmation-header {
+    text-align: center;
+    margin-bottom: 4rem;
+}
+
+.confirmation-header h2 {
+    color: var(--gold);
+    font-size: 3.2rem;
+    margin-bottom: 1rem;
+}
+
+.order-id {
+    color: var(--text-gray);
+    font-size: 1.6rem;
+    margin-bottom: 0.5rem;
+}
+
+.thank-you {
+    color: var(--white);
+    font-size: 1.8rem;
+}
+
+.detail-section {
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 1.5rem;
+    padding: 2rem;
+    margin-bottom: 2rem;
+}
+
+.detail-section h3 {
+    color: var(--gold);
+    font-size: 1.8rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.pickup-info p {
+    color: var(--white);
+    font-size: 2.4rem;
+    margin-bottom: 0.5rem;
+}
+
+.pickup-info .date {
+    color: var(--text-gray);
+    font-size: 1.4rem;
+}
+
+.order-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.item-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.item-name {
+    color: var(--white);
+    font-size: 1.6rem;
+}
+
+.item-quantity {
+    color: var(--text-gray);
+    font-size: 1.4rem;
+}
+
+.item-price {
+    color: var(--gold);
+    font-size: 1.6rem;
+}
+
+.item-options {
+    padding: 0.5rem 0 1rem 2rem;
+    color: var(--text-gray);
+    font-size: 1.3rem;
+}
+
+.price-summary {
+    background: rgba(199, 161, 122, 0.05);
+}
+
+.summary-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 1rem 0;
+    color: var(--text-gray);
+    font-size: 1.6rem;
+}
+
+.summary-row.total {
+    border-top: 1px solid rgba(199, 161, 122, 0.1);
+    margin-top: 1rem;
+    padding-top: 1.5rem;
+    color: var(--gold);
+    font-weight: 500;
+    font-size: 1.8rem;
+}
+
+.special-instructions p {
+    color: var(--text-gray);
+    font-size: 1.4rem;
+    line-height: 1.6;
+}
+
+.confirmation-footer {
+    display: flex;
+    gap: 2rem;
+    margin-top: 3rem;
+}
+
+.track-btn, .continue-btn {
+    flex: 1;
+    padding: 1.5rem;
+    border-radius: 1rem;
+    font-size: 1.6rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    transition: all 0.3s ease;
+    text-decoration: none;
+}
+
+.track-btn {
+    background: var(--gold);
+    color: var(--white);
+}
+
+.track-btn:hover {
+    background: #b17d3b;
+    transform: translateY(-2px);
+}
+
+.continue-btn {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--white);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.continue-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateY(-2px);
+}
+
+@media (max-width: 768px) {
+    .confirmation-card {
+        padding: 2rem;
+    }
+
+    .confirmation-footer {
+        flex-direction: column;
+    }
+
+    .pickup-info p {
+        font-size: 2rem;
+    }
+}
+</style>
+
+<!-- Add Font Awesome for icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+{% endblock %} 
