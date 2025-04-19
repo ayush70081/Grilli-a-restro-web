@@ -1,0 +1,113 @@
+/* Footer Styles */
+footer {
+    background: rgba(28, 28, 28, 0.98);
+    padding: 8rem 0 4rem;
+    border-top: 1px solid rgba(199, 161, 122, 0.1);
+}
+
+.footer-content {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 4rem;
+    margin-bottom: 4rem;
+}
+
+.footer-section h3 {
+    color: var(--gold);
+    font-size: 2rem;
+    margin-bottom: 2rem;
+    font-family: var(--font-heading);
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+.footer-section p {
+    color: var(--text-gray);
+    font-size: 1.5rem;
+    line-height: 1.8;
+    margin-bottom: 1.5rem;
+}
+
+.footer-links {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.footer-link {
+    color: var(--text-gray);
+    text-decoration: none;
+    font-size: 1.5rem;
+    padding: 0.8rem 0;
+    display: block;
+    transition: all 0.3s ease;
+}
+
+.footer-link:hover {
+    color: var(--gold);
+    transform: translateX(10px);
+}
+
+.copyright {
+    text-align: center;
+    padding-top: 3rem;
+    border-top: 1px solid rgba(199, 161, 122, 0.1);
+}
+
+.copyright p {
+    color: var(--text-gray);
+    font-size: 1.4rem;
+}
+
+.scroll-top {
+    position: fixed;
+    bottom: 3rem;
+    right: 3rem;
+    width: 5rem;
+    height: 5rem;
+    background: var(--gold);
+    color: var(--white);
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 2.4rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    opacity: 0;
+    visibility: hidden;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
+}
+
+.scroll-top.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.scroll-top:hover {
+    background: var(--gold-light);
+    transform: translateY(-5px);
+}
+
+@media screen and (max-width: 1024px) {
+    .footer-content {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 3rem;
+    }
+}
+
+@media screen and (max-width: 768px) {
+    footer {
+        padding: 6rem 0 3rem;
+    }
+
+    .footer-content {
+        grid-template-columns: 1fr;
+        gap: 4rem;
+        text-align: center;
+    }
+
+    .footer-link:hover {
+        transform: translateX(0) scale(1.05);
+    }
+} 

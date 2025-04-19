@@ -1,0 +1,226 @@
+/* Header/Navbar Styles */
+header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 8rem;  /* Fixed header height */
+    background: rgba(28, 28, 28, 0.98);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    z-index: 9999; /* Increase z-index to ensure header stays on top */
+    border-bottom: 1px solid rgba(199, 161, 122, 0.1);
+}
+
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 100%;
+    padding: 0;  /* Remove vertical padding */
+}
+
+.logo {
+    color: var(--gold);
+    text-decoration: none;
+    font-size: 2.4rem;
+    font-weight: bold;
+    font-family: var(--font-heading);
+}
+
+nav {
+    height: 100%;
+    display: flex;
+    align-items: center;
+}
+
+.nav-list {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    gap: 3rem;
+}
+
+.nav-link {
+    color: var(--text-gray);
+    text-decoration: none;
+    font-size: 1.6rem;
+    transition: color 0.3s ease;
+    white-space: nowrap;
+    padding: 0.5rem 1rem;
+}
+
+.nav-link:hover {
+    color: var(--gold);
+}
+
+/* Cart Icon */
+.cart-icon {
+    margin: 0 1rem;
+    position: relative;
+}
+
+.cart-icon a {
+    color: var(--text-gray);
+    text-decoration: none;
+    font-size: 2rem;
+    display: flex;
+    align-items: center;
+    transition: color 0.3s ease;
+}
+
+.cart-icon a:hover {
+    color: var(--gold);
+}
+
+.cart-count {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background: var(--gold);
+    color: var(--white);
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+
+/* User Menu */
+.user-info {
+    position: relative;
+    margin-left: auto;
+}
+
+.user-menu {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.8rem 1.5rem;
+    background: rgba(199, 161, 122, 0.1);
+    border-radius: 3rem;
+    transition: all 0.3s ease;
+    color: var(--text-gray);
+}
+
+.user-menu:hover {
+    background: rgba(199, 161, 122, 0.2);
+    color: var(--gold);
+}
+
+.dropdown-menu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background: rgba(28, 28, 28, 0.95);
+    border: 1px solid rgba(199, 161, 122, 0.2);
+    border-radius: 0.5rem;
+    padding: 0.5rem;
+    min-width: 180px;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(10px);
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+}
+
+.user-info:hover .dropdown-menu {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.menu-toggle {
+    display: none;
+    font-size: 2.4rem;
+    color: var(--white);
+    cursor: pointer;
+}
+
+/* Responsive Design */
+@media screen and (max-width: 1200px) {
+    .nav-list {
+        gap: 2rem;
+    }
+
+    .nav-link {
+        font-size: 1.4rem;
+    }
+}
+
+@media screen and (max-width: 992px) {
+    .menu-toggle {
+        display: block;
+        font-size: 2.4rem;
+        color: var(--white);
+        cursor: pointer;
+        z-index: 10000; /* Increase z-index */
+    }
+
+    nav {
+        margin-left: 0;
+    }
+
+    .nav-list {
+        position: fixed;
+        top: 8rem;
+        left: -100%;
+        width: 100%;
+        height: calc(100vh - 8rem);
+        background: rgba(28, 28, 28, 0.98);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        flex-direction: column;
+        align-items: center;
+        padding: 2rem;
+        gap: 2rem;
+        transition: left 0.3s ease;
+        z-index: 9998; /* Ensure it's below header but above other content */
+        overflow-y: auto; /* Allow scrolling if menu is too long */
+    }
+
+    .nav-list.active {
+        left: 0;
+    }
+
+    /* Ensure all nav items are visible */
+    .nav-item {
+        width: 100%;
+        text-align: center;
+    }
+
+    .nav-link {
+        display: block;
+        width: 100%;
+        padding: 1.5rem;
+        font-size: 1.6rem;
+        color: var(--text-gray);
+    }
+
+    /* Adjust cart icon positioning */
+    .cart-icon {
+        margin: 1rem 0;
+    }
+
+    /* Adjust user menu for mobile */
+    .user-info {
+        width: 100%;
+    }
+
+    .user-menu {
+        width: 100%;
+        justify-content: center;
+        margin: 1rem 0;
+    }
+
+    .dropdown-menu {
+        width: 100%;
+        position: relative;
+        margin-top: 1rem;
+    }
+}

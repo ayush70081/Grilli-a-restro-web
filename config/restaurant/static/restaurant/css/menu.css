@@ -1,0 +1,403 @@
+/* Menu Grid Layout */
+.menu-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+    overflow: hidden;
+    transition: max-height 0.5s ease-in-out;
+    position: relative;
+}
+
+/* Container for menu items */
+.menu-items-container {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+    margin-bottom: 1rem;
+    overflow: hidden;
+    transition: all 0.5s ease-in-out;
+    max-height: 500px; /* Height for one row */
+}
+
+.menu-items-container.expanded {
+    max-height: 2000px; /* Large enough to show all items */
+}
+
+/* Hide items after the first 3 */
+.menu-items-container .menu-item:nth-child(n+4) {
+    display: none;
+}
+
+/* Show all items when expanded */
+.menu-items-container.expanded .menu-item:nth-child(n+4) {
+    display: flex;
+    animation: fadeInUp 0.6s ease forwards;
+}
+
+/* Menu Item Animations */
+.menu-item {
+    opacity: 0;
+    transform: translateY(20px);
+    animation: fadeInUp 0.6s ease forwards;
+    background: var(--black-light);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: var(--shadow-md);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.menu-item:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.menu-item:nth-child(3) {
+    animation-delay: 0.4s;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* View More Button */
+.view-more-btn {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 2rem auto;
+    padding: 0.8rem 2rem;
+    background: var(--gold);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: -60px;
+    min-width: 150px;
+    font-size: 1.6rem;
+    letter-spacing: 0.5px;
+    width: 200px;
+}
+
+/* Only show View More button if there are more than 3 items */
+.menu-section:has(.menu-item:nth-child(4)) .view-more-btn {
+    display: block;
+}
+
+.view-more-btn:hover {
+    background: var(--dark-gold);
+    transform: translateX(-50%) translateY(-2px);
+    box-shadow: 0 4px 12px rgba(199, 161, 122, 0.2);
+}
+
+/* Hover Effects */
+.menu-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.menu-img {
+    overflow: hidden;
+    height: 200px;
+    flex: 0 0 auto;
+}
+
+.menu-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+}
+
+.menu-img:hover img {
+    transform: scale(1.1);
+}
+
+/* Make grid responsive */
+@media (max-width: 1024px) {
+    .menu-items-container {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .menu-items-container {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Menu Category Tabs */
+.menu-categories {
+    display: flex;
+    justify-content: center;
+    gap: 3rem;
+    margin-bottom: 5rem;
+    position: relative;
+}
+
+.menu-category {
+    padding: 1rem 2rem;
+    cursor: pointer;
+    color: var(--text-gray);
+    transition: all 0.3s ease;
+    border-bottom: 2px solid transparent;
+    font-size: 1.8rem;
+    font-family: var(--font-heading);
+    position: relative;
+}
+
+.menu-category::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background-color: var(--gold);
+    transition: width 0.3s ease;
+}
+
+.menu-category:hover::after,
+.menu-category.active::after {
+    width: 100%;
+}
+
+.menu-category.active {
+    color: var(--gold);
+}
+
+/* Menu Sections */
+.menu-section {
+    display: none;
+    position: relative;
+}
+
+.menu-section.active {
+    display: block;
+}
+
+/* Menu Item Styling */
+.menu-content {
+    padding: 2rem;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.menu-title {
+    font-size: 2rem;
+    color: var(--white);
+    margin-bottom: 1rem;
+    font-family: var(--font-heading);
+}
+
+.menu-price {
+    color: var(--gold);
+    font-size: 1.8rem;
+    font-weight: bold;
+    margin-bottom: 1rem;
+    font-family: var(--font-heading);
+}
+
+.menu-content p {
+    flex: 1;
+    font-size: 1.4rem;
+    line-height: 1.6;
+    color: var(--text-gray);
+}
+
+/* Container for the entire menu section including button */
+.menu-section {
+    padding-bottom: 70px;  /* Make space for the button */
+}
+
+.menu-container {
+    padding-top: 10rem;  /* Reduced from 12rem to match other pages */
+    padding-bottom: 6rem;
+    padding-left: 2rem;
+    padding-right: 2rem;
+    min-height: 100vh;
+    background: linear-gradient(rgba(0, 0, 0, 0.85), rgba(0, 0, 0, 0.95)),
+                url('https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1920&q=80') center/cover fixed;
+}
+
+.menu-content {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.menu-section {
+    margin-bottom: 4rem;
+}
+
+.category-title {
+    color: var(--gold);
+    font-size: 2.4rem;
+    margin-bottom: 2rem;
+    text-transform: capitalize;
+}
+
+.menu-items {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+}
+
+.menu-item {
+    background: rgba(28, 28, 28, 0.95);
+    border-radius: 1rem;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.menu-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+}
+
+.item-image {
+    height: 200px;
+    overflow: hidden;
+}
+
+.item-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.menu-item:hover .item-image img {
+    transform: scale(1.1);
+}
+
+.item-content {
+    padding: 2rem;
+}
+
+.item-title {
+    color: var(--white);
+    font-size: 1.8rem;
+    margin-bottom: 1rem;
+}
+
+.item-description {
+    color: var(--text-gray);
+    margin-bottom: 1.5rem;
+    font-size: 1.4rem;
+    line-height: 1.6;
+}
+
+.item-price {
+    color: var(--gold);
+    font-size: 2rem;
+    margin-bottom: 1.5rem;
+}
+
+.quantity-control {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.qty-btn {
+    width: 3rem;
+    height: 3rem;
+    border: none;
+    background: rgba(199, 161, 122, 0.1);
+    color: var(--gold);
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.qty-btn:hover {
+    background: rgba(199, 161, 122, 0.2);
+}
+
+input[type="number"] {
+    width: 6rem;
+    padding: 0.8rem;
+    text-align: center;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(199, 161, 122, 0.2);
+    color: var(--white);
+    border-radius: 0.5rem;
+}
+
+.item-options {
+    margin-bottom: 1.5rem;
+}
+
+.option-group {
+    margin-bottom: 1rem;
+}
+
+.option-group label {
+    display: block;
+    color: var(--text-gray);
+    margin-bottom: 0.5rem;
+}
+
+.option-group select {
+    width: 100%;
+    padding: 0.8rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(199, 161, 122, 0.2);
+    color: var(--white);
+    border-radius: 0.5rem;
+}
+
+.add-to-cart-btn {
+    width: 100%;
+    padding: 1.2rem;
+    background: var(--gold);
+    color: var(--white);
+    border: none;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.add-to-cart-btn:hover {
+    background: var(--gold-light);
+}
+
+/* Add this for the menu header */
+.menu-header {
+    margin-bottom: 4rem;
+}
+
+.section-subtitle {
+    color: var(--text-gray);
+    text-align: center;
+    font-size: 1.6rem;
+    margin-top: -2rem;
+    margin-bottom: 3rem;
+}
+
+/* Update category navigation */
+.category-nav {
+    position: sticky;
+    top: 8rem;  /* Adjusted to account for header height */
+    background: rgba(28, 28, 28, 0.95);
+    padding: 1.5rem 0;
+    margin-bottom: 3rem;
+    z-index: 90;  /* Below header but above content */
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(199, 161, 122, 0.1);
+} 

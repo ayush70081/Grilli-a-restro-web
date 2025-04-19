@@ -1,0 +1,155 @@
+/* Base Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --gold: #c7a17a;
+    --gold-light: #d4b190;
+    --gold-dark: #b08d66;
+    --black: #1c1c1c;
+    --black-light: #2a2a2a;
+    --white: #ffffff;
+    --text-gray: #ccc;
+    --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-slow: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    --font-base: 'Arial', sans-serif;
+    --font-heading: 'Georgia', serif;
+    --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.1);
+    --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+}
+
+html {
+    font-size: 62.5%;
+    scroll-padding-top: 100px;
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: var(--font-base);
+    line-height: 1.6;
+    background-color: var(--black);
+    color: var(--white);
+    overflow-x: hidden;
+    padding-top: 8rem;
+    min-height: 100vh;
+}
+
+.container {
+    max-width: 120rem;
+    margin: 0 auto;
+    padding: 0 2rem;
+    height: 100%;
+    position: relative;
+    z-index: 1;
+}
+
+.section-title {
+    font-size: 4.2rem;
+    text-align: center;
+    margin-bottom: 4rem;
+    color: var(--gold);
+}
+
+.subtitle {
+    font-size: 1.8rem;
+    color: var(--text-gray);
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+/* Animation Classes */
+.fade-in {
+    opacity: 0;
+    transform: translateY(2rem);
+    animation: fadeIn 0.8s forwards ease-out;
+}
+
+@keyframes fadeIn {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Alert Messages */
+.messages-container {
+    position: fixed;
+    top: 80px;
+    right: 20px;
+    width: 300px;
+    z-index: 9999;
+}
+
+.alert-message {
+    background-color: var(--gold);
+    color: var(--black);
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    border-radius: 0.5rem;
+    font-size: 1.6rem;
+    box-shadow: var(--shadow-md);
+    opacity: 1;
+    transform: translateX(0);
+    transition: all 0.5s ease;
+}
+
+.alert-message.fade-out {
+    opacity: 0;
+    transform: translateX(100%);
+}
+
+.messages {
+    max-width: 800px;
+    margin: 0 auto 2rem;
+    padding: 0 2rem;
+}
+
+.alert {
+    padding: 1.5rem;
+    border-radius: 0.5rem;
+    margin-bottom: 1rem;
+    font-size: 1.4rem;
+}
+
+.alert-error {
+    background-color: rgba(220, 38, 38, 0.1);
+    color: #dc2626;
+    border: 1px solid rgba(220, 38, 38, 0.2);
+}
+
+.alert-success {
+    background-color: rgba(5, 150, 105, 0.1);
+    color: #059669;
+    border: 1px solid rgba(5, 150, 105, 0.2);
+}
+
+.alert-warning {
+    background-color: rgba(245, 158, 11, 0.1);
+    color: #f59e0b;
+    border: 1px solid rgba(245, 158, 11, 0.2);
+}
+
+.error-message {
+    color: #dc2626;
+    font-size: 1.2rem;
+    margin-top: 0.5rem;
+}
+
+/* Add this to your existing base styles */
+.page-container {
+    padding-top: 10rem;
+    padding-bottom: 6rem;
+    min-height: 100vh;
+    background: linear-gradient(rgba(0, 0, 0, 0.85), rgba(0, 0, 0, 0.95)),
+                url('https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1920&q=80') center/cover fixed;
+}
+
+/* Ensure proper stacking context */
+main, section {
+    position: relative;
+    z-index: 1;
+} 
